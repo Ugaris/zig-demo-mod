@@ -24,7 +24,7 @@ jobs:
             artifact: libbmod.dylib
             output: bmod-arm64.dylib
             platform: macos-arm64
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             target: x86_64-linux
             artifact: libbmod.so
             output: bmod.so
