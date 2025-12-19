@@ -49,7 +49,7 @@ jobs:
 
       - name: Rename artifact (Windows)
         if: matrix.platform == 'windows'
-        run: cp zig-out/lib/${{ matrix.artifact }} ${{ matrix.artifact }}
+        run: cp zig-out/bin/${{ matrix.artifact }} ${{ matrix.artifact }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
