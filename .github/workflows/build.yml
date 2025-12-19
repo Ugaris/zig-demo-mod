@@ -1,0 +1,114 @@
+name: Build Mod
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-windows
+            artifact: bmod.dll
+            platform: windows
+          - os: macos-latest
+            target: x86_64-macos
+            artifact: libbmod.dylib
+            output: bmod.dylib
+            platform: macos-x64
+          - os: macos-latest
+            target: aarch64-macos
+            artifact: libbmod.dylib
+            output: bmod-arm64.dylib
+            platform: macos-arm64
+          - os: ubuntu-20.04
+            target: x86_64-linux
+            artifact: libbmod.so
+            output: bmod.so
+            platform: linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Build
+        run: zig build -Doptimize=ReleaseFast -Dtarget=${{ matrix.target }}
+
+      - name: Rename artifact (Unix)
+        if: matrix.platform != 'windows'
+        run: cp zig-out/lib/${{ matrix.artifact }} ${{ matrix.output }}
+
+      - name: Rename artifact (Windows)
+        if: matrix.platform == 'windows'
+        run: cp zig-out/lib/${{ matrix.artifact }} ${{ matrix.artifact }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}
+          path: ${{ matrix.output || matrix.artifact }}
+
+  create-universal-macos:
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - name: Download x64
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-x64
+          path: x64
+
+      - name: Download arm64
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-arm64
+          path: arm64
+
+      - name: Create Universal Binary
+        run: |
+          lipo -create x64/bmod.dylib arm64/bmod-arm64.dylib -output bmod.dylib
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: bmod.dylib
+
+  release:
+    needs: [build, create-universal-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Organize release files
+        run: |
+          mkdir -p release
+          cp artifacts/windows/bmod.dll release/
+          cp artifacts/macos/bmod.dylib release/
+          cp artifacts/linux/bmod.so release/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release/bmod.dll
+            release/bmod.dylib
+            release/bmod.so
+          generate_release_notes: true

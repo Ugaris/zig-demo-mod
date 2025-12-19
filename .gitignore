@@ -1,0 +1,21 @@
+# Zig build artifacts
+zig-out/
+zig-cache/
+.zig-cache/
+
+# Compiled binaries
+*.dll
+*.so
+*.dylib
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-*
