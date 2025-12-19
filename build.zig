@@ -11,15 +11,9 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    // Allow undefined symbols (they'll be resolved by the host application)
-    lib.linker_module.pic = true;
+    // Allow undefined symbols - they will be resolved at runtime by the host application
+    // This is essential for mods that reference functions/variables exported by the client
+    lib.linker_allow_shlib_undefined = true;
 
     b.installArtifact(lib);
-
-    // Add a run step for testing
-    const run_cmd = b.addRunArtifact(lib);
-    run_cmd.step.dependOn(b.getInstallStep());
-
-    const run_step = b.step("run", "Run the library");
-    run_step.dependOn(&run_cmd.step);
 }
