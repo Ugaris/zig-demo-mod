@@ -11,7 +11,7 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            target: x86_64-windows
+            target: x86_64-windows-gnu
             artifact: bmod.dll
             platform: windows
           - os: macos-14
