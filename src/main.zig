@@ -9,6 +9,7 @@
 //!   #overlay - Toggle a simple HUD overlay
 
 const std = @import("std");
+const builtin = @import("builtin");
 
 // ============================================================================
 // Constants
@@ -49,18 +50,51 @@ extern fn doty(didx: c_int) c_int;
 extern fn exp2level(val: c_int) c_int;
 
 // Game state
-extern var hp: c_int;
-extern var mana: c_int;
-extern var gold: c_int;
-extern var experience: c_int;
-extern var value: [2][V_MAX]c_int;
-extern var username: [40]u8;
+// Game state (client-exported data).
+//
+// On Windows, data crosses the DLL boundary through the import table slot
+// (__imp_<name>) provided by the client's import library - a plain extern
+// does not resolve there. On Linux/macOS the dynamic loader binds the
+// symbol directly. This comptime helper picks the right mechanism, and
+// uses the client's REAL types (hp/mana and value[] are 16-bit,
+// experience/gold are u32 - older demos declared c_int and read garbage).
+fn clientVar(comptime T: type, comptime name: [:0]const u8) *T {
+    if (builtin.os.tag == .windows) {
+        return @extern(*const *T, .{ .name = "__imp_" ++ name }).*;
+    }
+    return @extern(*T, .{ .name = name });
+}
 
-// Colors
-extern var whitecolor: u16;
-extern var textcolor: u16;
-extern var healthcolor: u16;
-extern var manacolor: u16;
+inline fn hp() u16 {
+    return clientVar(u16, "hp").*;
+}
+inline fn mana() u16 {
+    return clientVar(u16, "mana").*;
+}
+inline fn gold() u32 {
+    return clientVar(u32, "gold").*;
+}
+inline fn experience() u32 {
+    return clientVar(u32, "experience").*;
+}
+inline fn value(kind: usize, idx: usize) u16 {
+    return clientVar([2][V_MAX]u16, "value")[kind][idx];
+}
+inline fn username() *[40]u8 {
+    return clientVar([40]u8, "username");
+}
+inline fn whitecolor() u16 {
+    return clientVar(u16, "whitecolor").*;
+}
+inline fn textcolor() u16 {
+    return clientVar(u16, "textcolor").*;
+}
+inline fn healthcolor() u16 {
+    return clientVar(u16, "healthcolor").*;
+}
+inline fn manacolor() u16 {
+    return clientVar(u16, "manacolor").*;
+}
 
 // ============================================================================
 // Mod State
@@ -99,7 +133,7 @@ export fn amod_exit() void {
 
 export fn amod_gamestart() void {
     // Get username as a Zig slice
-    const name_slice = std.mem.sliceTo(&username, 0);
+    const name_slice = std.mem.sliceTo(username(), 0);
     _ = note("Zig Demo Mod: Game started! Welcome, %s", name_slice.ptr);
     addline("Zig Demo Mod loaded. Type #hello for commands.");
 }
@@ -131,24 +165,24 @@ export fn amod_frame() void {
     render_line(x + w, y, x + w, y + h, border_color);
 
     // Title
-    _ = render_text(x + 4, y + 4, whitecolor, 0, "Zig Demo Mod");
+    _ = render_text(x + 4, y + 4, whitecolor(), 0, "Zig Demo Mod");
 
     var text_y = y + 20;
 
     // HP
-    _ = render_text(x + 4, text_y, healthcolor, 0, formatText("HP: {d} / {d}", .{ hp, value[0][V_HP] }));
+    _ = render_text(x + 4, text_y, healthcolor(), 0, formatText("HP: {d} / {d}", .{ hp(), value(0, V_HP) }));
     text_y += 14;
 
     // Mana
-    _ = render_text(x + 4, text_y, manacolor, 0, formatText("Mana: {d} / {d}", .{ mana, value[0][V_MANA] }));
+    _ = render_text(x + 4, text_y, manacolor(), 0, formatText("Mana: {d} / {d}", .{ mana(), value(0, V_MANA) }));
     text_y += 14;
 
     // Gold
-    _ = render_text(x + 4, text_y, irgb(31, 31, 0), 0, formatText("Gold: {d}", .{gold}));
+    _ = render_text(x + 4, text_y, irgb(31, 31, 0), 0, formatText("Gold: {d}", .{gold()}));
     text_y += 14;
 
     // Frame counter
-    _ = render_text(x + 4, text_y, textcolor, 0, formatText("Frame: {d}", .{frame_count}));
+    _ = render_text(x + 4, text_y, textcolor(), 0, formatText("Frame: {d}", .{frame_count}));
 }
 
 export fn amod_mouse_move(x: c_int, y: c_int) void {
@@ -185,17 +219,17 @@ export fn amod_client_cmd(buf: [*:0]const u8) c_int {
     }
 
     if (std.mem.eql(u8, cmd, "#stats")) {
-        const level = exp2level(experience);
+        const level = exp2level(@intCast(experience()));
         addline("=== Player Stats (from Zig) ===");
-        addline(formatText("Level: {d}  Experience: {d}", .{ level, experience }));
-        addline(formatText("HP: {d}/{d}  Mana: {d}/{d}", .{ hp, value[0][V_HP], mana, value[0][V_MANA] }));
+        addline(formatText("Level: {d}  Experience: {d}", .{ level, experience() }));
+        addline(formatText("HP: {d}/{d}  Mana: {d}/{d}", .{ hp(), value(0, V_HP), mana(), value(0, V_MANA) }));
         addline(formatText("STR: {d}  AGI: {d}  INT: {d}  WIS: {d}", .{
-            value[0][V_STR],
-            value[0][V_AGI],
-            value[0][V_INT],
-            value[0][V_WIS],
+            value(0, V_STR),
+            value(0, V_AGI),
+            value(0, V_INT),
+            value(0, V_WIS),
         }));
-        addline(formatText("Gold: {d}", .{gold}));
+        addline(formatText("Gold: {d}", .{gold()}));
         return 1;
     }
 
