@@ -11,9 +11,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    // Allow undefined symbols - they will be resolved at runtime by the host application
-    // This is essential for mods that reference functions/variables exported by the client
-    lib.linker_allow_shlib_undefined = true;
+    if (target.result.os.tag == .windows) {
+        // Windows mods must link the client's import library (lib/moac.lib
+        // or lib/moac.a from the client release's mod-sdk.zip): PE has no
+        // runtime resolution against the host executable, so a DLL with
+        // unresolved client symbols crashes the game on the first API call.
+        lib.addLibraryPath(b.path("lib"));
+        lib.linkSystemLibrary("moac");
+    } else {
+        // ELF/Mach-O: symbols resolve against the client at load time.
+        lib.linker_allow_shlib_undefined = true;
+    }
 
     b.installArtifact(lib);
 }
