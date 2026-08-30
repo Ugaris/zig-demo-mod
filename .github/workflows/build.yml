@@ -14,12 +14,12 @@ jobs:
             target: x86_64-windows
             artifact: bmod.dll
             platform: windows
-          - os: macos-latest
+          - os: macos-14
             target: x86_64-macos
             artifact: libbmod.dylib
             output: bmod.dylib
             platform: macos-x64
-          - os: macos-latest
+          - os: macos-14
             target: aarch64-macos
             artifact: libbmod.dylib
             output: bmod-arm64.dylib
@@ -71,7 +71,7 @@ jobs:
 
   create-universal-macos:
     needs: build
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - name: Download x64
         uses: actions/download-artifact@v4
