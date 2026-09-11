@@ -1,6 +1,6 @@
 {
   "name": "Zig Demo Mod",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A native mod written in Zig demonstrating the Ugaris Client mod API with Zig's safety, performance, and excellent cross-compilation.",
   "author": "Ugaris Team",
   "authorUrl": "https://github.com/Ugaris",
@@ -8,17 +8,17 @@
   "files": [
     {
       "name": "zig_demo_mod.dll",
-      "path": "https://github.com/Ugaris/zig-demo-mod/releases/download/v1.0.2/zig_demo_mod.dll",
+      "path": "https://github.com/Ugaris/zig-demo-mod/releases/download/v1.0.3/zig_demo_mod.dll",
       "platform": "windows"
     },
     {
       "name": "zig_demo_mod.dylib",
-      "path": "https://github.com/Ugaris/zig-demo-mod/releases/download/v1.0.2/zig_demo_mod.dylib",
+      "path": "https://github.com/Ugaris/zig-demo-mod/releases/download/v1.0.3/zig_demo_mod.dylib",
       "platform": "macos"
     },
     {
       "name": "zig_demo_mod.so",
-      "path": "https://github.com/Ugaris/zig-demo-mod/releases/download/v1.0.2/zig_demo_mod.so",
+      "path": "https://github.com/Ugaris/zig-demo-mod/releases/download/v1.0.3/zig_demo_mod.so",
       "platform": "linux"
     }
   ],
