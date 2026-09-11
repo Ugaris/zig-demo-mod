@@ -174,9 +174,9 @@ export fn amod_option_get(index: c_int, out: *AmodOption) c_int {
     }
 }
 
-export fn amod_option_set(index: c_int, value: c_int) void {
+export fn amod_option_set(index: c_int, new_value: c_int) void {
     if (index == 1) {
-        show_overlay = (value != 0);
+        show_overlay = (new_value != 0);
     }
 }
 
