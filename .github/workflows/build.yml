@@ -12,22 +12,22 @@ jobs:
         include:
           - os: windows-latest
             target: x86_64-windows-gnu
-            artifact: bmod.dll
+            artifact: zig_demo_mod.dll
             platform: windows
           - os: macos-14
             target: x86_64-macos
-            artifact: libbmod.dylib
-            output: bmod.dylib
+            artifact: libzig_demo_mod.dylib
+            output: zig_demo_mod.dylib
             platform: macos-x64
           - os: macos-14
             target: aarch64-macos
-            artifact: libbmod.dylib
-            output: bmod-arm64.dylib
+            artifact: libzig_demo_mod.dylib
+            output: zig_demo_mod-arm64.dylib
             platform: macos-arm64
           - os: ubuntu-latest
             target: x86_64-linux
-            artifact: libbmod.so
-            output: bmod.so
+            artifact: libzig_demo_mod.so
+            output: zig_demo_mod.so
             platform: linux
 
     runs-on: ${{ matrix.os }}
@@ -87,13 +87,13 @@ jobs:
 
       - name: Create Universal Binary
         run: |
-          lipo -create x64/bmod.dylib arm64/bmod-arm64.dylib -output bmod.dylib
+          lipo -create x64/zig_demo_mod.dylib arm64/zig_demo_mod-arm64.dylib -output zig_demo_mod.dylib
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos
-          path: bmod.dylib
+          path: zig_demo_mod.dylib
 
   release:
     needs: [build, create-universal-macos]
@@ -112,15 +112,15 @@ jobs:
       - name: Organize release files
         run: |
           mkdir -p release
-          cp artifacts/windows/bmod.dll release/
-          cp artifacts/macos/bmod.dylib release/
-          cp artifacts/linux/bmod.so release/
+          cp artifacts/windows/zig_demo_mod.dll release/
+          cp artifacts/macos/zig_demo_mod.dylib release/
+          cp artifacts/linux/zig_demo_mod.so release/
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            release/bmod.dll
-            release/bmod.dylib
-            release/bmod.so
+            release/zig_demo_mod.dll
+            release/zig_demo_mod.dylib
+            release/zig_demo_mod.so
           generate_release_notes: true
