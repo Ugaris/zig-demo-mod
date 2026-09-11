@@ -51,9 +51,9 @@ zig build -Doptimize=ReleaseFast -Dtarget=x86_64-linux
 
 ### Output Location
 
-- `zig-out/lib/bmod.dll` (Windows)
-- `zig-out/lib/libbmod.dylib` (macOS, rename to `bmod.dylib`)
-- `zig-out/lib/libbmod.so` (Linux, rename to `bmod.so`)
+- `zig-out/lib/zig_demo_mod.dll` (Windows)
+- `zig-out/lib/libzig_demo_mod.dylib` (macOS, rename to `zig_demo_mod.dylib`)
+- `zig-out/lib/libzig_demo_mod.so` (Linux, rename to `zig_demo_mod.so`)
 
 ## Project Structure
 
