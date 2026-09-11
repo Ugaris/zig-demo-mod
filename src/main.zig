@@ -119,6 +119,67 @@ fn formatText(comptime fmt: []const u8, args: anytype) [*:0]const u8 {
 // Mod Callbacks
 // ============================================================================
 
+// ============================================================================
+// Settings in Options > Mods
+//
+// struct amod_option is deliberately layout-frozen on the client side (see
+// amod_options.h), which is what makes this extern-struct mirror safe across
+// client/mod version mixes: four c_ints then a 48-byte label.
+// ============================================================================
+
+const AmodOption = extern struct {
+    opt_type: c_int,
+    value: c_int,
+    min_val: c_int,
+    max_val: c_int,
+    label: [48]u8,
+};
+
+const AMOD_OPT_HEADER: c_int = 0;
+const AMOD_OPT_TOGGLE: c_int = 1;
+
+/// Copy a label in, NUL-terminated and truncated rather than overrunning.
+fn setLabel(out: *AmodOption, text: []const u8) void {
+    const n = @min(text.len, out.label.len - 1);
+    @memcpy(out.label[0..n], text[0..n]);
+    out.label[n] = 0;
+}
+
+export fn amod_options_count() c_int {
+    return 2;
+}
+
+export fn amod_option_get(index: c_int, out: *AmodOption) c_int {
+    out.* = AmodOption{
+        .opt_type = 0,
+        .value = 0,
+        .min_val = 0,
+        .max_val = 0,
+        .label = [_]u8{0} ** 48,
+    };
+
+    switch (index) {
+        0 => {
+            out.opt_type = AMOD_OPT_HEADER;
+            setLabel(out, "Zig Demo");
+            return 1;
+        },
+        1 => {
+            out.opt_type = AMOD_OPT_TOGGLE;
+            out.value = if (show_overlay) 1 else 0;
+            setLabel(out, "Show overlay");
+            return 1;
+        },
+        else => return 0,
+    }
+}
+
+export fn amod_option_set(index: c_int, value: c_int) void {
+    if (index == 1) {
+        show_overlay = (value != 0);
+    }
+}
+
 export fn amod_version() [*:0]const u8 {
     return "Zig Demo Mod 1.0.0";
 }
