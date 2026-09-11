@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*'
+  # so a build can be proven green before a tag is cut, not after
+  workflow_dispatch:
 
 jobs:
   build:
